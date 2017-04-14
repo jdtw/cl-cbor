@@ -23,19 +23,30 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
    (ldb (byte 3 5) b)
    (ldb (byte 5 0) b)))
 
-(defun uint-information (n &aux (n-bits (integer-length n)))
-  (declare ((unsigned-byte 64) n))
+(defun len-information (len &aux (bits (integer-length len)))
+  (declare ((unsigned-byte 64) len))
   (cond
-    ((<= n 23) (values n 0))
-    ((<= n-bits  8) (values 24 0))
-    ((<= n-bits 16) (values 25 0))
-    ((<= n-bits 32) (values 26 (- 4 (ceiling n-bits 8))))
-    ((<= n-bits 64) (values 27 (- 8 (ceiling n-bits 8))))))
+    ((<= len 23) len)
+    ((<= bits 8) 24)
+    ((<= bits 16) 25)
+    ((<= bits 32) 26)
+    ((<= bits 64) 27)))
 
-(defun int->bytes (n &aux (nbytes (ceiling (integer-length n) 8)))
+(defun int-padding (nbits)
+  (let ((pad (cond
+               ((<= nbits 16) 0)
+               ((<= nbits 32) (- 4 (ceiling nbits 8)))
+               ((<= nbits 64) (- 8 (ceiling nbits 8))))))
+    (if (> pad 0)
+        (loop repeat pad collect 0))))
+
+(defun int->bytes (n)
   (declare ((unsigned-byte 64) n))
-  (let (bytes)
-    (dotimes (i nbytes (values bytes))
+  (let* (bytes
+         (nbits (integer-length n))
+         (nbytes (ceiling nbits 8)))
+    (dotimes (i nbytes)
       (locally
           (declare (optimize (safety 0)))
-        (push (ldb (byte 8 (* i 8)) n) bytes)))))
+        (push (ldb (byte 8 (* i 8)) n) bytes)))
+    (nconc (int-padding nbits) bytes)))
