@@ -9,4 +9,5 @@
   :license "MIT"
   :serial t
   :components ((:file "package")
-               (:file "cl-cbor")))
+               (:file "cl-cbor")
+               (:file "int")))

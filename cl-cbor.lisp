@@ -25,34 +25,6 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
    (ldb (byte 3 5) b)
    (ldb (byte 5 0) b)))
 
-(defun int-padding (nbytes)
-  "Returns a list of zeros required to pad to 32 or 64 bits. (Values less than
-or equal to 16 bits long dont need padding, because we can express them as
-uint8_t or uint16_t.)"
-  (declare ((integer 0 8) nbytes))
-  (let ((pad (cond
-               ((<= nbytes 2) 0)
-               ((<= nbytes 4) (- 4 nbytes))
-               ((<= nbytes 8) (- 8 nbytes)))))
-    (if (> pad 0)
-        (loop repeat pad collect 0))))
-
-(defun int->bytes (n)
-  (declare ((unsigned-byte 64) n))
-  (let ((nbytes (ceiling (integer-length n) 8)) bytes)
-    (dotimes (i nbytes)
-      (locally
-          (declare (optimize (safety 0)))
-        (push (ldb (byte 8 (* i 8)) n) bytes)))
-    (nconc (int-padding nbytes) bytes)))
-
-(defconstant +uint+ 0
-  "Major type 0: an unsigned integer. The 5-bit additional information is either
-the integer itself (for additional information values 0 through 23) or the
-length of additional data. Additional information 24 means the value is
-represented in an additional uint8_t, 25 means a uint16_t, 26 means a uint32_t,
-and 27 means a uint64_t.")
-
 (defun addl-info (len)
   (declare ((unsigned-byte 64) len))
   (let ((bits (integer-length len)))
@@ -62,6 +34,13 @@ and 27 means a uint64_t.")
       ((<= bits 16) 25)
       ((<= bits 32) 26)
       ((< bits 64) 27))))
+
+(defconstant +uint+ 0
+  "Major type 0: an unsigned integer. The 5-bit additional information is either
+the integer itself (for additional information values 0 through 23) or the
+length of additional data. Additional information 24 means the value is
+represented in an additional uint8_t, 25 means a uint16_t, 26 means a uint32_t,
+and 27 means a uint64_t.")
 
 (defun encode-uint (n &key (type +uint+))
   (declare ((unsigned-byte 64) n))
