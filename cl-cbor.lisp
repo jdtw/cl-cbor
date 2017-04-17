@@ -63,6 +63,18 @@ unsigned integer.")
   "Major type 2: a byte string. The string's length in bytes is represented
 following the rules for positive integers (major type 0).")
 
+(defun list-of-bytes-p (bytes)
+  (and (typep bytes 'list)
+       (every (lambda (b) (typep b '(unsigned-byte 8)))
+              bytes)))
+
+(defun encode-bytes (bytes &key (type +bytes+))
+  (let ((byte-list (coerce bytes 'list)))
+    (if (not (list-of-bytes-p byte-list))
+        (error "Requires a sequence of bytes"))
+    (nconc (encode-uint (length bytes) :type type)
+           byte-list)))
+
 (defconstant +utf8+ 3
   "Major type 3: a text string, specifically a string of Unicode characters that
 is encoded as UTF-8 [RFC3629]. The format of this type is identical to that of
