@@ -7,6 +7,7 @@
   :description "Common lisp cbor encoder/decoder"
   :author "John Wood <j@jdtw.us>"
   :license "MIT"
+  :depends-on (#:trivial-utf-8)
   :serial t
   :components ((:file "package")
                (:file "int")

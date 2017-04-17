@@ -4,6 +4,6 @@
 ;;;; See LICENSE for additional information.
 
 (defpackage #:cl-cbor
-  (:use #:cl)
+  (:use #:cl #:trivial-utf-8)
   (:export :int->bytes
-           :bytes->int))
+   :bytes->int))

@@ -81,6 +81,10 @@ is encoded as UTF-8 [RFC3629]. The format of this type is identical to that of
 byte strings (major type 2), that is, as with major type 2, the length gives the
 number of bytes.")
 
+(defun encode-utf8 (string)
+  (encode-bytes (string-to-utf-8-bytes string)
+                :type +utf8+))
+
 (defconstant +array+ 4
   "Major type 4:  an array of data items.  Arrays are also called lists,
 sequences, or tuples. The array's length follows the rules for byte
