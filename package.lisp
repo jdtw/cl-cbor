@@ -4,6 +4,12 @@
 ;;;; See LICENSE for additional information.
 
 (defpackage #:cl-cbor
-  (:use #:cl #:trivial-utf-8)
-  (:export :int->bytes
-   :bytes->int))
+  (:nicknames #:cbor)
+  (:use #:cl)
+  (:import-from #:trivial-utf-8
+                #:string-to-utf-8-bytes)
+  (:import-from #:alexandria
+                #:mappend)
+  (:export #:int->bytes
+           #:bytes->int
+           #:encode))

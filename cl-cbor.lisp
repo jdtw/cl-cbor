@@ -35,6 +35,14 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
       ((<= bits 32) 26)
       ((< bits 64) 27))))
 
+(defun encode (thing)
+  (etypecase thing
+    ((unsigned-byte 64) (encode-uint thing))
+    ((signed-byte 64) (encode-int thing))
+    ((vector integer) (encode-bytes thing))
+    (string (encode-utf8 thing))
+    (list (encode-array thing))))
+
 (defconstant +uint+ 0
   "Major type 0: an unsigned integer. The 5-bit additional information is either
 the integer itself (for additional information values 0 through 23) or the
@@ -90,6 +98,10 @@ number of bytes.")
 sequences, or tuples. The array's length follows the rules for byte
 strings (major type 2), except that the length denotes the number of data items,
 not the length in bytes that the array takes up.")
+
+(defun encode-array (array)
+  (append (encode-uint (length array) :type +array+)
+          (mappend #'encode array)))
 
 (defconstant +dict+ 5
   "Major type 5: a map of pairs of data items. Maps are also called tables,
