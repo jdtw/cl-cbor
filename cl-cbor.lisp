@@ -35,13 +35,17 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
       ((<= bits 32) 26)
       ((< bits 64) 27))))
 
+(defparameter *encode-symbols-as-strings* t)
+
 (defun encode (thing)
   (etypecase thing
     ((unsigned-byte 64) (encode-uint thing))
     ((signed-byte 64) (encode-int thing))
     ((vector integer) (encode-bytes thing))
     (string (encode-utf8 thing))
-    (symbol (encode-utf8 (symbol-name thing)))
+    (symbol (if *encode-symbols-as-strings*
+                (encode-utf8 (symbol-name thing))
+                (error "*encode-symbols-as-strings* is nil")))
     (list (encode-array thing))
     (hash-table (encode-dict thing))))
 

@@ -12,4 +12,5 @@
                 #:mappend)
   (:export #:int->bytes
            #:bytes->int
-           #:encode))
+           #:encode
+           #:*encode-symbols-as-strings*))
