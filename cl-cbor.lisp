@@ -41,7 +41,9 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
     ((signed-byte 64) (encode-int thing))
     ((vector integer) (encode-bytes thing))
     (string (encode-utf8 thing))
-    (list (encode-array thing))))
+    (symbol (encode-utf8 (symbol-name thing)))
+    (list (encode-array thing))
+    (hash-table (encode-dict thing))))
 
 (defconstant +uint+ 0
   "Major type 0: an unsigned integer. The 5-bit additional information is either
@@ -110,6 +112,12 @@ items, each pair consisting of a key that is immediately followed by a value.
 The map's length follows the rules for byte strings (major type 2), except that
 the length denotes the number of pairs, not the length in bytes that the map
 takes up.")
+
+(defun encode-dict (dict)
+  (append (encode-uint (hash-table-count dict) :type +dict+)
+          (loop for k being the hash-keys of dict
+                  using (hash-value v)
+                append (append (encode k) (encode v)))))
 
 (defconstant +tags+ 6
   "Major type 6:  optional semantic tagging of other major types.")
