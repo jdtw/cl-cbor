@@ -1,1 +1,5 @@
-This is the stub README.txt for the "cl-cbor" project.
+#+TITLE: cl-cbor
+#+AUTHOR: John Wood
+
+Work-in-progress implementation of the Concise Binary Object Representation
+([[http://cbor.io][CBOR]]) data format.
