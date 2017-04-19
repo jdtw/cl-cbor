@@ -20,7 +20,7 @@ uint8_t or uint16_t.)"
 (defun int->bytes (n)
   (declare ((unsigned-byte 64) n))
   (let ((nbytes (ceiling (integer-length n) 8)) bytes)
-    (dotimes (i nbytes)
+    (dotimes (i (if (= nbytes 0) 1 nbytes))
       (locally
           (declare (optimize (safety 0)))
         (push (ldb (byte 8 (* i 8)) n) bytes)))
