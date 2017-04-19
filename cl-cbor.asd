@@ -9,7 +9,9 @@
   :license "MIT"
   :depends-on (#:trivial-utf-8
                #:alexandria)
+  :pathname "src"
   :serial t
   :components ((:file "package")
                (:file "int")
-               (:file "cl-cbor")))
+               (:file "cl-cbor"))
+  :in-order-to ((test-op (test-op cl-cbor-test))))
