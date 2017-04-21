@@ -47,7 +47,8 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
                 (encode-utf8 (symbol-name thing))
                 (error "*encode-symbols-as-strings* is nil")))
     (list (encode-array thing))
-    (hash-table (encode-dict thing))))
+    (hash-table (encode-dict thing))
+    (float (encode-float thing))))
 
 (defconstant +uint+ 0
   "Major type 0: an unsigned integer. The 5-bit additional information is either
@@ -129,3 +130,17 @@ takes up.")
 (defconstant +simple+ 7
   "Major type 7: floating-point numbers and simple data types that need no
 content, as well as the \"break\" stop code.")
+(defconstant +break+ (initial-byte 7 31))
+
+(declaim (inline encode-float16 decode-float16))
+(make-float-converters encode-float16 decode-float16 5 10 nil)
+
+(defun encode-float (f)
+  "Encodes a single or double float. We do not encode half floats,
+since Common Lisp has no notion of them."
+  (multiple-value-bind (encoder addl-info)
+      (etypecase f
+        (single-float (values #'encode-float32 26))
+        (double-float (values #'encode-float64 27)))
+    (cons (initial-byte +simple+ addl-info)
+          (int->bytes (funcall encoder f)))))

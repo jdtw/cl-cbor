@@ -5,7 +5,8 @@
 
 (defpackage #:cl-cbor
   (:nicknames #:cbor)
-  (:use #:cl)
+  (:use #:cl
+        #:ieee-floats)
   (:import-from #:trivial-utf-8
                 #:string-to-utf-8-bytes)
   (:import-from #:alexandria

@@ -8,7 +8,8 @@
   :author "John Wood <j@jdtw.us>"
   :license "MIT"
   :depends-on (#:trivial-utf-8
-               #:alexandria)
+               #:alexandria
+               #:ieee-floats)
   :pathname "src"
   :serial t
   :components ((:file "package")
