@@ -35,3 +35,12 @@ uint8_t or uint16_t.)"
           (declare (optimize (safety 0)))
         (setf (ldb (byte 8 (* i 8)) n) b)
         (incf i)))))
+
+(defun list-of-bytes-p (bytes)
+  (and (typep bytes 'list)
+       (every (lambda (b) (typep b '(unsigned-byte 8)))
+              bytes)))
+
+;; ieee-floats contains encoders/decoders for 32 and 64 bit
+;; floats, but not 16
+(make-float-converters encode-float16 decode-float16 5 10 nil)
