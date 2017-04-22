@@ -7,8 +7,11 @@
   (:nicknames #:cbor)
   (:use #:cl
         #:ieee-floats)
-  (:import-from #:trivial-utf-8
-                #:string-to-utf-8-bytes)
+  (:import-from #:flexi-streams
+                #:string-to-octets
+                #:octets-to-string
+                #:make-in-memory-input-stream
+                #:make-in-memory-output-stream)
   (:import-from #:alexandria
                 #:mappend)
   (:export #:int->bytes

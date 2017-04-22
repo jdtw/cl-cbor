@@ -50,7 +50,7 @@
            byte-list)))
 
 (defun encode-utf8 (string)
-  (encode-bytes (string-to-utf-8-bytes string)
+  (encode-bytes (string-to-octets string :external-format :utf8)
                 :type +utf8+))
 
 (defun encode-array (array)
