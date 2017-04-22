@@ -13,7 +13,8 @@
   :pathname "src"
   :serial t
   :components ((:file "package")
-               (:file "initial-byte")
+               (:file "cbor")
                (:file "misc")
-               (:file "encode"))
+               (:file "encode")
+               (:file "decode"))
   :in-order-to ((test-op (test-op cl-cbor-test))))

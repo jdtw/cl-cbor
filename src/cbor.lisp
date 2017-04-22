@@ -1,4 +1,4 @@
-;;;; encode.lisp
+;;;; cbor.lisp
 
 ;;;; Copyright (c) 2017, John Wood <j@jdtw.us>
 ;;;; See LICENSE for additional information.
@@ -94,6 +94,7 @@ content, as well as the \"break\" stop code.")
 (defconstant +false+ 20)
 (defconstant +true+ 21)
 (defconstant +null+ 22)
+(defconstant +break+ #xFF)
 
 (defun initial-byte (hi lo)
   "The initial byte of each data item contains both information about the major
@@ -124,5 +125,3 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
       ((<= bits 16) 25)
       ((<= bits 32) 26)
       ((< bits 64) 27))))
-
-(defconstant +break+ #xFF)
