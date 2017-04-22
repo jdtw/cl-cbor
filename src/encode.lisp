@@ -11,28 +11,42 @@
   "Possible values are 'list, 'null, or 'boolean")
 
 (defun encode (thing &key as-list)
-  (flexi-streams:with-output-to-sequence (stream :as-list as-list)
+  (flexi-streams:with-output-to-sequence
+      (stream :as-list as-list)
     (encode-to-stream thing stream)))
 
 (defun encode-to-stream (thing stream)
-  (etypecase thing
-    (null (ecase *encode-nil-as*
-            (null (write-byte (initial-byte +simple+ +null+) stream))
-            (boolean (write-byte (initial-byte +simple+ +false+) stream))
-            (list (encode-array thing stream))))
-    ((unsigned-byte 64) (encode-uint thing stream))
-    ((signed-byte 64) (encode-int thing stream))
-    ((vector integer) (encode-bytes thing stream))
-    (string (encode-utf8 thing stream))
-    (list (encode-array thing stream))
-    (hash-table (encode-dict thing stream))
-    (float (encode-float thing stream))
-    ;; We know this is 'true' because nil would have been
-    ;; handled in the first case.
-    (boolean (write-byte (initial-byte +simple+ +true+) stream))
-    (symbol (if *encode-symbols-as-strings*
-                (encode-utf8 (symbol-name thing) stream)
-                (error "*encode-symbols-as-strings* is nil")))))
+  (let ((encoder
+          (etypecase thing
+            (null #'encode-null)
+            ((unsigned-byte 64) #'encode-uint)
+            ((signed-byte 64) #'encode-int)
+            ((vector integer) #'encode-bytes)
+            (string #'encode-utf8)
+            (list #'encode-array)
+            (hash-table #'encode-dict)
+            (float #'encode-float)
+            (boolean #'encode-bool)
+            (symbol #'encode-symbol))))
+    (funcall encoder thing stream)))
+
+(defun encode-null (null stream)
+  (declare (null null))
+  (ecase *encode-nil-as*
+    (null (write-byte (initial-byte +simple+ +null+) stream))
+    (boolean (write-byte (initial-byte +simple+ +false+) stream))
+    (list (encode-array null stream))))
+
+(defun encode-bool (b stream)
+  (declare (boolean b))
+  (write-byte (initial-byte +simple+ (if b +true+ +false+))
+              stream))
+
+(defun encode-symbol (sym stream)
+  (declare (symbol sym))
+  (if *encode-symbols-as-strings*
+      (encode-utf8 (symbol-name sym) stream)
+      (error "*encode-symbols-as-strings* is nil")))
 
 (defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
