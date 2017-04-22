@@ -91,6 +91,10 @@ takes up.")
   "Major type 7: floating-point numbers and simple data types that need no
 content, as well as the \"break\" stop code.")
 
+(defconstant +false+ 20)
+(defconstant +true+ 21)
+(defconstant +null+ 22)
+
 (defun initial-byte (hi lo)
   "The initial byte of each data item contains both information about the major
 type (the high-order 3 bits) and additional information (the low-order 5 bits)."

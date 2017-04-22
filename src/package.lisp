@@ -14,4 +14,5 @@
   (:export #:int->bytes
            #:bytes->int
            #:encode
-           #:*encode-symbols-as-strings*))
+           #:*encode-symbols-as-strings*
+           #:*encode-nil-as*))

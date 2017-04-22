@@ -5,20 +5,30 @@
 
 (in-package #:cl-cbor)
 
-(defparameter *encode-symbols-as-strings* t)
+(defparameter *encode-symbols-as-strings* t
+  "'foo and :foo will be encoded as \"FOO\"")
+(defparameter *encode-nil-as* 'null
+  "Possible values are 'list, 'null, or 'boolean")
 
 (defun encode (thing)
   (etypecase thing
+    (null (ecase *encode-nil-as*
+            (null (initial-byte +simple+ +false+))
+            (boolean (initial-byte +simple+ +null+))
+            (list (encode-array thing))))
     ((unsigned-byte 64) (encode-uint thing))
     ((signed-byte 64) (encode-int thing))
     ((vector integer) (encode-bytes thing))
     (string (encode-utf8 thing))
-    (symbol (if *encode-symbols-as-strings*
-                (encode-utf8 (symbol-name thing))
-                (error "*encode-symbols-as-strings* is nil")))
     (list (encode-array thing))
     (hash-table (encode-dict thing))
-    (float (encode-float thing))))
+    (float (encode-float thing))
+    ;; We know this is 'true' because nil would have been
+    ;; handled in the first case.
+    (boolean (initial-byte +simple+ +true+))
+    (symbol (if *encode-symbols-as-strings*
+                (encode-utf8 (symbol-name thing))
+                (error "*encode-symbols-as-strings* is nil")))))
 
 (defun encode-uint (n &key (type +uint+))
   (declare ((unsigned-byte 64) n))
