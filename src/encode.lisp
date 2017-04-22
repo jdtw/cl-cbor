@@ -10,64 +10,68 @@
 (defparameter *encode-nil-as* 'null
   "Possible values are 'list, 'null, or 'boolean")
 
-(defun encode (thing)
+(defun encode (thing &key as-list)
+  (flexi-streams:with-output-to-sequence (stream :as-list as-list)
+    (encode-to-stream thing stream)))
+
+(defun encode-to-stream (thing stream)
   (etypecase thing
     (null (ecase *encode-nil-as*
-            (null (initial-byte +simple+ +false+))
-            (boolean (initial-byte +simple+ +null+))
-            (list (encode-array thing))))
-    ((unsigned-byte 64) (encode-uint thing))
-    ((signed-byte 64) (encode-int thing))
-    ((vector integer) (encode-bytes thing))
-    (string (encode-utf8 thing))
-    (list (encode-array thing))
-    (hash-table (encode-dict thing))
-    (float (encode-float thing))
+            (null (write-byte (initial-byte +simple+ +null+) stream))
+            (boolean (write-byte (initial-byte +simple+ +false+) stream))
+            (list (encode-array thing stream))))
+    ((unsigned-byte 64) (encode-uint thing stream))
+    ((signed-byte 64) (encode-int thing stream))
+    ((vector integer) (encode-bytes thing stream))
+    (string (encode-utf8 thing stream))
+    (list (encode-array thing stream))
+    (hash-table (encode-dict thing stream))
+    (float (encode-float thing stream))
     ;; We know this is 'true' because nil would have been
     ;; handled in the first case.
-    (boolean (initial-byte +simple+ +true+))
+    (boolean (write-byte (initial-byte +simple+ +true+) stream))
     (symbol (if *encode-symbols-as-strings*
-                (encode-utf8 (symbol-name thing))
+                (encode-utf8 (symbol-name thing) stream)
                 (error "*encode-symbols-as-strings* is nil")))))
 
-(defun encode-uint (n &key (type +uint+))
+(defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
-  (cons
-   (initial-byte type (addl-info n))
-   (if (> n 23) (int->bytes n))))
+  (write-byte (initial-byte type (addl-info n)) stream)
+  (when (> n 23) (write-sequence (int->bytes n) stream)))
 
-(defun encode-int (n)
+(defun encode-int (n stream)
   (declare ((signed-byte 64) n))
   (if (< n 0)
-      (encode-uint (- -1 n) :type +neg-int+)
-      (encode-uint n)))
+      (encode-uint (- -1 n) stream :type +neg-int+)
+      (encode-uint n stream)))
 
-(defun encode-bytes (bytes &key (type +bytes+))
-  (let ((byte-list (coerce bytes 'list)))
-    (if (not (list-of-bytes-p byte-list))
-        (error "Requires a sequence of bytes"))
-    (nconc (encode-uint (length bytes) :type type)
-           byte-list)))
+(defun encode-bytes (bytes stream &key (type +bytes+))
+  (unless (seq-of-bytes-p bytes)
+    (error "Requires a sequence of bytes"))
+  (encode-uint (length bytes) stream :type type)
+  (write-sequence bytes stream))
 
-(defun encode-utf8 (string)
-  (encode-bytes (string-to-octets string :external-format :utf8)
-                :type +utf8+))
+(defun encode-utf8 (string stream)
+  (encode-bytes
+   (string-to-octets string :external-format :utf8)
+   stream
+   :type +utf8+))
 
-(defun encode-array (array)
-  (nconc (encode-uint (length array) :type +array+)
-         (mappend #'encode array)))
+(defun encode-array (array stream)
+  (encode-uint (length array) stream :type +array+)
+  (loop for e being the elements of array do
+        (encode-to-stream e stream)))
 
-(defun encode-dict (dict)
-  (nconc (encode-uint (hash-table-count dict) :type +dict+)
-         (loop for k being the hash-keys of dict
-                 using (hash-value v)
-               append (append (encode k) (encode v)))))
+(defun encode-dict (dict stream)
+  (encode-uint (hash-table-count dict) stream :type +dict+)
+  (loop for k being the hash-keys of dict using (hash-value v)
+        do (encode-to-stream k stream) (encode-to-stream v stream)))
 
 ;; We don't encode half-floats
-(defun encode-float (f)
+(defun encode-float (f stream)
   (multiple-value-bind (encoder addl-info)
       (etypecase f
         (single-float (values #'encode-float32 26))
         (double-float (values #'encode-float64 27)))
-    (cons (initial-byte +simple+ addl-info)
-          (int->bytes (funcall encoder f)))))
+    (write-byte (initial-byte +simple+ addl-info) stream)
+    (write-sequence (int->bytes (funcall encoder f)) stream)))
