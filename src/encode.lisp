@@ -89,3 +89,41 @@
         (double-float (values #'encode-float64 27)))
     (write-byte (initial-byte +simple+ addl-info) stream)
     (write-sequence (int->bytes (funcall encoder f)) stream)))
+
+;;; Streaming encoding
+
+(defparameter *cbor-output* nil)
+
+(defmacro with-output ((stream) &body body)
+  `(let ((*cbor-output* ,stream))
+     ,@body))
+
+(defmacro with-output-to-sequence ((&key as-list) &body body)
+  `(let ((*cbor-output* (make-in-memory-output-stream)))
+     ,@body
+     (get-output-stream-sequence *cbor-output* :as-list ,as-list)))
+
+(defmacro def-indefinite-encoder (name type)
+  (alexandria:with-gensyms (body)
+    `(defmacro ,name (() &body ,body)
+       `(progn
+          (write-initial-byte ,,type +indefinite+ *cbor-output*)
+          ,@,body
+          (write-byte +break+ *cbor-output*)))))
+
+(def-indefinite-encoder with-array +array+)
+(defun encode-array-element (e)
+  (encode-to-stream e *cbor-output*))
+
+(def-indefinite-encoder with-dict +dict+)
+(defun encode-key-value (k v)
+  (encode-to-stream k *cbor-output*)
+  (encode-to-stream v *cbor-output*))
+
+(def-indefinite-encoder with-utf8 +utf8+)
+(defun encode-utf8-chunk (string)
+  (encode-utf8 string *cbor-output*))
+
+(def-indefinite-encoder with-bytes +bytes+)
+(defun encode-byte-chunk (bytes)
+  (encode-bytes bytes *cbor-output*))
