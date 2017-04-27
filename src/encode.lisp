@@ -110,9 +110,9 @@
   (encode-to-stream v *cbor-output*))
 
 (def-indefinite-encoder with-utf8 +utf8+)
-(defun encode-utf8-chunk (string)
-  (encode-utf8 string *cbor-output*))
+(defun encode-utf8 (string)
+  (encode-to-stream (coerce string 'string) *cbor-output*))
 
 (def-indefinite-encoder with-bytes +bytes+)
-(defun encode-byte-chunk (bytes)
-  (encode-bytes bytes *cbor-output*))
+(defun encode-bytes (bytes)
+  (encode-to-stream (coerce bytes 'vector) *cbor-output*))
