@@ -5,6 +5,8 @@
 
 (in-package #:cl-cbor)
 
+;;; Lisp data encoding
+
 (defparameter *encode-symbols-as-strings* t
   "'foo and :foo will be encoded as \"FOO\"")
 (defparameter *encode-nil-as* 'null
@@ -15,80 +17,67 @@
       (stream :as-list as-list)
     (encode-to-stream thing stream)))
 
-(defun encode-to-stream (thing stream)
-  (let ((encoder
-          (etypecase thing
-            (null #'encode-null)
-            ((unsigned-byte 64) #'encode-uint)
-            ((signed-byte 64) #'encode-int)
-            ((vector integer) #'encode-bytes)
-            (string #'encode-utf8)
-            (list #'encode-array)
-            (hash-table #'encode-dict)
-            (float #'encode-float)
-            (boolean #'encode-bool)
-            (symbol #'encode-symbol))))
-    (funcall encoder thing stream)))
+(defgeneric encode-to-stream (thing stream)
+  (:documentation "Encodes a Common Lisp type to cbor"))
 
-(defun encode-null (null stream)
-  (declare (null null))
+(defmethod encode-to-stream ((thing null) stream)
+  (declare (ignore thing))
   (ecase *encode-nil-as*
-    (null (write-byte (initial-byte +simple+ +null+) stream))
-    (boolean (write-byte (initial-byte +simple+ +false+) stream))
-    (list (encode-array null stream))))
+    (null (write-initial-byte +simple+ +null+ stream))
+    (boolean (write-initial-byte +simple+ +false+ stream))
+    (list (write-initial-byte +array+ 0 stream))))
 
-(defun encode-bool (b stream)
-  (declare (boolean b))
-  (write-byte (initial-byte +simple+ (if b +true+ +false+))
-              stream))
+(defmethod encode-to-stream ((thing integer) stream)
+  (unless (<= (integer-length thing) 64)
+    (error "Only 64-bit integers are supported"))
+  (if (< thing 0)
+      (encode-uint (- -1 thing) stream :type +neg-int+)
+      (encode-uint thing stream)))
 
-(defun encode-symbol (sym stream)
-  (declare (symbol sym))
-  (if *encode-symbols-as-strings*
-      (encode-utf8 (symbol-name sym) stream)
-      (error "*encode-symbols-as-strings* is nil")))
+(defmethod encode-to-stream ((thing vector) stream)
+  (unless (seq-of-bytes-p thing)
+    (error "Requires a sequence of bytes"))
+  (encode-uint (length thing) stream :type +bytes+)
+  (write-sequence thing stream))
+
+(defmethod encode-to-stream ((thing string) stream)
+  (encode-uint (length thing) stream :type +utf8+)
+  (write-sequence (string-to-octets thing :external-format :utf8)
+                  stream))
+
+(defmethod encode-to-stream ((thing list) stream)
+  (encode-uint (length thing) stream :type +array+)
+  (loop for x in thing do
+    (encode-to-stream x stream)))
+
+(defmethod encode-to-stream ((thing hash-table) stream)
+  (encode-uint (hash-table-count thing) stream :type +dict+)
+  (loop for k being the hash-keys of thing using (hash-value v)
+        do (encode-to-stream k stream) (encode-to-stream v stream)))
+
+(defmethod encode-to-stream ((thing float) stream)
+  (multiple-value-bind (encoder addl-info)
+      (etypecase thing
+        (single-float (values #'encode-float32 26))
+        (double-float (values #'encode-float64 27)))
+    (write-initial-byte +simple+ addl-info stream)
+    (write-sequence (int->bytes (funcall encoder thing)) stream)))
+
+(defmethod encode-to-stream ((thing ratio) stream)
+  (encode-to-stream (coerce thing 'double-float) stream))
+
+(defmethod encode-to-stream ((thing (eql t)) stream)
+  (write-initial-byte +simple+ (if thing +true+ +false+) stream))
+
+(defmethod encode-to-stream ((thing symbol) stream)
+  (unless *encode-symbols-as-strings*
+    (error "*encode-symbols-as-strings* is nil"))
+  (encode-to-stream (symbol-name thing) stream))
 
 (defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
-  (write-byte (initial-byte type (addl-info n)) stream)
+  (write-initial-byte type (addl-info n) stream)
   (when (> n 23) (write-sequence (int->bytes n) stream)))
-
-(defun encode-int (n stream)
-  (declare ((signed-byte 64) n))
-  (if (< n 0)
-      (encode-uint (- -1 n) stream :type +neg-int+)
-      (encode-uint n stream)))
-
-(defun encode-bytes (bytes stream &key (type +bytes+))
-  (unless (seq-of-bytes-p bytes)
-    (error "Requires a sequence of bytes"))
-  (encode-uint (length bytes) stream :type type)
-  (write-sequence bytes stream))
-
-(defun encode-utf8 (string stream)
-  (encode-bytes
-   (string-to-octets string :external-format :utf8)
-   stream
-   :type +utf8+))
-
-(defun encode-array (array stream)
-  (encode-uint (length array) stream :type +array+)
-  (loop for e being the elements of array do
-        (encode-to-stream e stream)))
-
-(defun encode-dict (dict stream)
-  (encode-uint (hash-table-count dict) stream :type +dict+)
-  (loop for k being the hash-keys of dict using (hash-value v)
-        do (encode-to-stream k stream) (encode-to-stream v stream)))
-
-;; We don't encode half-floats
-(defun encode-float (f stream)
-  (multiple-value-bind (encoder addl-info)
-      (etypecase f
-        (single-float (values #'encode-float32 26))
-        (double-float (values #'encode-float64 27)))
-    (write-byte (initial-byte +simple+ addl-info) stream)
-    (write-sequence (int->bytes (funcall encoder f)) stream)))
 
 ;;; Streaming encoding
 
