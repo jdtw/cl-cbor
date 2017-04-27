@@ -11,11 +11,23 @@
                 #:string-to-octets
                 #:octets-to-string
                 #:make-in-memory-input-stream
-                #:make-in-memory-output-stream)
+                #:make-in-memory-output-stream
+                #:get-output-stream-sequence)
   (:import-from #:alexandria
-                #:mappend)
+                #:mappend
+                #:with-gensyms)
   (:export #:int->bytes
            #:bytes->int
-           #:encode
            #:*encode-symbols-as-strings*
-           #:*encode-nil-as*))
+           #:*encode-nil-as*
+           #:encode
+           #:with-output
+           #:with-output-to-sequence
+           #:with-array
+           #:encode-array-element
+           #:with-dict
+           #:encode-key-value
+           #:with-utf8
+           #:encode-utf8
+           #:with-bytes
+           #:encode-bytes))
