@@ -107,6 +107,8 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
     (setf (ldb (byte 3 5) b) hi)
     (setf (ldb (byte 5 0) b) lo)
     b))
+(defun write-initial-byte (hi lo stream)
+  (write-byte (initial-byte hi lo) stream))
 
 (defun information (b)
   "The initial byte of each data item contains both information about the major
@@ -116,6 +118,7 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
    (ldb (byte 3 5) b)
    (ldb (byte 5 0) b)))
 
+(defconstant +indefinite+ 31)
 (defun addl-info (len)
   (declare ((unsigned-byte 64) len))
   (let ((bits (integer-length len)))
