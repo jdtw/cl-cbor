@@ -11,6 +11,10 @@ the integer itself (for additional information values 0 through 23) or the
 length of additional data. Additional information 24 means the value is
 represented in an additional uint8_t, 25 means a uint16_t, 26 means a uint32_t,
 and 27 means a uint64_t.")
+(defconstant +ub8+ 24)
+(defconstant +ub16+ 25)
+(defconstant +ub32+ 26)
+(defconstant +ub64+ 27)
 
 (defconstant +neg-int+ 1
   "Major type 1: a negative integer. The encoding follows the rules for unsigned
