@@ -14,13 +14,18 @@
                 #:make-in-memory-output-stream
                 #:get-output-stream-sequence)
   (:import-from #:alexandria
-                #:mappend
                 #:with-gensyms)
-  (:export #:int->bytes
-           #:bytes->int
-           #:*encode-symbols-as-strings*
+  (:import-from #:nibbles
+                #:write-ub16/be
+                #:write-ub32/be
+                #:write-ub64/be
+                #:read-ub16/be
+                #:read-ub32/be
+                #:read-ub64/be)
+  (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode
+           #:encode-to-sequence
            #:with-output
            #:with-output-to-sequence
            #:with-array

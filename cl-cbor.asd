@@ -9,7 +9,8 @@
   :license "MIT"
   :depends-on (#:flexi-streams
                #:alexandria
-               #:ieee-floats)
+               #:ieee-floats
+               #:nibbles)
   :pathname "src"
   :serial t
   :components ((:file "package")
