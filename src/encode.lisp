@@ -51,10 +51,12 @@
         do (encode k stream) (encode v stream)))
 
 (defmethod encode ((thing float) stream)
-  (let ((encoder (etypecase thing
-                   (single-float #'encode-float32)
-                   (double-float #'encode-float64))))
-    (encode-uint (funcall encoder thing) stream :type +simple+)))
+  (multiple-value-bind (info encoder writer)
+      (etypecase thing
+        (single-float (values +ub32+ #'encode-float32 #'write-ub32/be))
+        (double-float (values +ub64+ #'encode-float64 #'write-ub64/be)))
+    (write-initial-byte +simple+ info stream)
+    (funcall writer (funcall encoder thing) stream)))
 
 (defmethod encode ((thing ratio) stream)
   (encode (coerce thing 'double-float) stream))
@@ -70,14 +72,14 @@
 (defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
   (let ((bits (integer-length n)))
-    (multiple-value-bind (addl-info writer)
+    (multiple-value-bind (info writer)
         (cond
           ((<= n 23) (values n (lambda (n s) (declare (ignore n s)))))
           ((<= bits 8) (values +ub8+ #'write-byte))
           ((<= bits 16) (values +ub16+ #'write-ub16/be))
           ((<= bits 32) (values +ub32+ #'write-ub32/be))
-          ((< bits 64) (values +ub64+ #'write-ub64/be)))
-      (write-initial-byte type addl-info stream)
+          ((<= bits 64) (values +ub64+ #'write-ub64/be)))
+      (write-initial-byte type info stream)
       (funcall writer n stream))))
 
 (defun encode-to-sequence (thing &key as-list)
