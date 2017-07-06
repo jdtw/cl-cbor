@@ -35,4 +35,7 @@
            #:with-utf8
            #:encode-utf8
            #:with-bytes
-           #:encode-bytes))
+           #:encode-bytes
+           #:decode
+           #:decode-sequence
+           #:*decode-hash-table-initargs*))
