@@ -36,7 +36,7 @@
   (write-sequence thing stream))
 
 (defmethod encode ((thing string) stream)
-  (let ((octets (string-to-octets thing :external-format :utf8)))
+  (let ((octets (string-to-octets thing :encoding :utf-8)))
     (encode-uint (length octets) stream :type +utf8+)
     (write-sequence octets stream)))
 

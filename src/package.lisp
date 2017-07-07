@@ -8,11 +8,10 @@
   (:use #:cl
         #:ieee-floats)
   (:import-from #:flexi-streams
-                #:string-to-octets
-                #:octets-to-string
                 #:make-in-memory-input-stream
                 #:make-in-memory-output-stream
-                #:get-output-stream-sequence)
+                #:get-output-stream-sequence
+                #:peek-byte)
   (:import-from #:alexandria
                 #:with-gensyms)
   (:import-from #:nibbles
@@ -22,6 +21,9 @@
                 #:read-ub16/be
                 #:read-ub32/be
                 #:read-ub64/be)
+  (:import-from #:babel
+                #:string-to-octets
+                #:octets-to-string)
   (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode

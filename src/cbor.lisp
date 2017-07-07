@@ -120,4 +120,11 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
   (declare ((unsigned-byte 8) b))
   (ldb (byte 5 0) b))
 
+(defun major (b)
+  "The initial byte of each data item contains both information about the major
+type (the high-order 3 bits) and additional information (the low-order 5 bits)."
+  (declare ((unsigned-byte 8) b))
+  (ldb (byte 3 5) b))
+
+
 (defconstant +indefinite+ 31)

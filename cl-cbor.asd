@@ -10,7 +10,8 @@
   :depends-on (#:flexi-streams
                #:alexandria
                #:ieee-floats
-               #:nibbles)
+               #:nibbles
+               #:babel)
   :pathname "src"
   :serial t
   :components ((:file "package")
