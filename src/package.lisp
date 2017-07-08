@@ -7,12 +7,6 @@
   (:nicknames #:cbor)
   (:use #:cl
         #:ieee-floats)
-  (:import-from #:flexi-streams
-                #:make-flexi-stream
-                #:make-in-memory-input-stream
-                #:make-in-memory-output-stream
-                #:get-output-stream-sequence
-                #:peek-byte)
   (:import-from #:alexandria
                 #:with-gensyms)
   (:import-from #:nibbles
@@ -25,6 +19,11 @@
   (:import-from #:babel
                 #:string-to-octets
                 #:octets-to-string)
+  (:import-from #:babel-streams
+                #:make-in-memory-input-stream
+                #:make-in-memory-output-stream
+                #:get-output-stream-sequence
+                #:with-input-from-sequence)
   (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode

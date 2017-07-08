@@ -7,11 +7,11 @@
   :description "Common lisp cbor encoder/decoder"
   :author "John Wood <j@jdtw.us>"
   :license "MIT"
-  :depends-on (#:flexi-streams
-               #:alexandria
+  :depends-on (#:alexandria
                #:ieee-floats
                #:nibbles
-               #:babel)
+               #:babel
+               #:babel-streams)
   :pathname "src"
   :serial t
   :components ((:file "package")

@@ -13,13 +13,11 @@ for any hash tables found during decoding")
 
 ;; TODO What should happen if the whole stream is not consumed? Multiple values?
 (defun decode (stream)
-  (let ((stream (make-flexi-stream stream :element-type '(unsigned-byte 8))))
-    (jump stream)))
+  (jump stream))
 
 (defun decode-sequence (sequence)
-  (flexi-streams:with-input-from-sequence (stream sequence)
-    (let ((stream (make-flexi-stream stream :element-type '(unsigned-byte 8))))
-      (decode stream))))
+  (with-input-from-sequence (stream sequence)
+    (decode stream)))
 
 ;; Integers
 (defjump ((#x00 #x1b)) (read-cbor-uint))
@@ -28,23 +26,23 @@ for any hash tables found during decoding")
 ;; Byte strings
 (defjump ((#x40 #x5b)) (read-cbor-bytes))
 (defjump (#x5f)
-  (flexi-streams:with-output-to-sequence (out)
-    (decode-loop do (write-sequence (decode) out))))
+  (babel-streams:with-output-to-sequence (out)
+    (decode-loop do (write-sequence decoded out))))
 
 ;; UTF8 strings
 (defjump ((#x60 #x7b))
   (octets-to-string (read-cbor-bytes) :encoding :utf-8))
 (defjump (#x7f)
   (with-output-to-string (out)
-    (decode-loop do (write-string (decode) out))))
+    (decode-loop do (write-string decoded out))))
 
 ;; Arrays
-(defjump ((#x80 #x9b) #x9f) (decode-loop collect (decode)))
+(defjump ((#x80 #x9b) #x9f) (decode-loop collect decoded))
 
 ;; Hash tables
 (defjump ((#xa0 #xbb) #xbf)
   (decode-loop with dict = (make-decode-dict)
-               do (setf (gethash (decode) dict) (decode))
+               do (setf (gethash decoded dict) (decode))
                finally (return dict)))
 
 (defjump (#xc0) (error "Text-based date/time not implemented"))

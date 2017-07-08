@@ -82,9 +82,9 @@
       (write-initial-byte type info stream)
       (funcall writer n stream))))
 
-(defun encode-to-sequence (thing &key as-list)
-  (flexi-streams:with-output-to-sequence
-      (stream :as-list as-list)
+(defun encode-to-sequence (thing &key (return-as 'vector))
+  (babel-streams:with-output-to-sequence
+      (stream :return-as return-as)
     (encode thing stream)))
 
 ;;; Streaming encoding
@@ -95,10 +95,10 @@
   `(let ((*cbor-output* ,stream))
      ,@body))
 
-(defmacro with-output-to-sequence ((&key as-list) &body body)
+(defmacro with-output-to-sequence ((&key (return-as 'vector)) &body body)
   `(let ((*cbor-output* (make-in-memory-output-stream)))
      ,@body
-     (get-output-stream-sequence *cbor-output* :as-list ,as-list)))
+     (get-output-stream-sequence *cbor-output* :return-as ',return-as)))
 
 (defmacro def-indefinite-encoder (name type)
   (with-gensyms (body)
