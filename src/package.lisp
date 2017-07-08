@@ -8,6 +8,7 @@
   (:use #:cl
         #:ieee-floats)
   (:import-from #:flexi-streams
+                #:make-flexi-stream
                 #:make-in-memory-input-stream
                 #:make-in-memory-output-stream
                 #:get-output-stream-sequence

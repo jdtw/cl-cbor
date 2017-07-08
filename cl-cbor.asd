@@ -18,5 +18,6 @@
                (:file "cbor")
                (:file "misc")
                (:file "encode")
+               (:file "jump")
                (:file "decode"))
   :in-order-to ((test-op (test-op cl-cbor-test))))
