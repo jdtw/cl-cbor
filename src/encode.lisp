@@ -83,44 +83,40 @@
       (funcall writer n stream))))
 
 (defun encode-to-sequence (thing &key (return-as 'vector))
-  (babel-streams:with-output-to-sequence
-      (stream :return-as return-as)
+  (babel-streams:with-output-to-sequence (stream :return-as return-as)
     (encode thing stream)))
 
 ;;; Streaming encoding
 
-(defparameter *cbor-output* nil)
-
-(defmacro with-output ((stream) &body body)
-  `(let ((*cbor-output* ,stream))
+(defmacro with-output-to-sequence ((var &key (return-as 'vector)) &body body)
+  `(babel-streams:with-output-to-sequence (,var :return-as ',return-as)
      ,@body))
 
-(defmacro with-output-to-sequence ((&key (return-as 'vector)) &body body)
-  `(let ((*cbor-output* (make-in-memory-output-stream)))
-     ,@body
-     (get-output-stream-sequence *cbor-output* :return-as ',return-as)))
+(defmacro def-encoder (name type stream (encoder capture &body encode))
+  `(defmacro ,name ((,stream) &body body)
+     `(flet ((,',encoder ,',capture ,@',encode))
+        (declare (ignorable (function ,',encoder)))
+        (write-initial-byte ,,type +indefinite+ ,,stream)
+        ,@body
+        (write-byte +break+ ,,stream))))
 
-(defmacro def-indefinite-encoder (name type)
-  (with-gensyms (body)
-    `(defmacro ,name (&body ,body)
-       `(progn
-          (write-initial-byte ,,type +indefinite+ *cbor-output*)
-          ,@,body
-          (write-byte +break+ *cbor-output*)))))
+(def-encoder with-array +array+ stream
+    (encode-array-element (e)
+      (encode e stream)))
 
-(def-indefinite-encoder with-array +array+)
-(defun encode-array-element (e)
-  (encode e *cbor-output*))
+(def-encoder with-dict +dict+ stream
+    (encode-key-value (k v)
+      (unless (typep k 'string)
+        (warn 'dict-key-not-a-string :dict-key k))
+      (encode k stream)
+      (encode v stream)))
 
-(def-indefinite-encoder with-dict +dict+)
-(defun encode-key-value (k v)
-  (encode k *cbor-output*)
-  (encode v *cbor-output*))
+(def-encoder with-utf8 +utf8+ stream
+    (encode-utf8 (utf8)
+      (check-type utf8 string)
+      (encode utf8 stream)))
 
-(def-indefinite-encoder with-utf8 +utf8+)
-(defun encode-utf8 (string)
-  (encode (coerce string 'string) *cbor-output*))
-
-(def-indefinite-encoder with-bytes +bytes+)
-(defun encode-bytes (bytes)
-  (encode (coerce bytes 'vector) *cbor-output*))
+(def-encoder with-bytes +bytes+ stream
+    (encode-bytes (bytes)
+      (check-type bytes (vector integer))
+      (encode bytes stream)))

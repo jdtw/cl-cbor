@@ -5,7 +5,7 @@
 
 (in-package #:cl-cbor)
 
-(defparameter *decode-hash-table-initargs*
+(defparameter *decode-hash-table-initargs* nil
   "The caller may specify initial args to make-hash-table
 for any hash tables found during decoding")
 (defun make-decode-dict ()
@@ -41,8 +41,10 @@ for any hash tables found during decoding")
 
 ;; Hash tables
 (defjump ((#xa0 #xbb) #xbf)
-  (decode-loop with dict = (make-decode-dict)
-               do (setf (gethash decoded dict) (decode))
+  (decode-loop with dict = (make-decode-dict) do
+               (unless (typep decoded 'string)
+                 (warn 'dict-key-not-a-string :dict-key decoded))
+               (setf (gethash decoded dict) (decode))
                finally (return dict)))
 
 (defjump (#xc0) (error "Text-based date/time not implemented"))

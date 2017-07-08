@@ -28,7 +28,6 @@
            #:*encode-nil-as*
            #:encode
            #:encode-to-sequence
-           #:with-output
            #:with-output-to-sequence
            #:with-array
            #:encode-array-element

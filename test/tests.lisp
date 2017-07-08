@@ -95,13 +95,13 @@
 
 (subtest "Test indefinite length"
   (is (cbor:decode-sequence
-       (cbor:with-output-to-sequence ()
-         (cbor:with-array
-           (cbor:with-utf8
+       (cbor:with-output-to-sequence (stream)
+         (cbor:with-array (stream)
+           (cbor:with-utf8 (stream)
              (cbor:encode-utf8 "foo")
              (cbor:encode-utf8 "bar"))
-           (cbor:with-array)
-           (cbor:with-bytes
+           (cbor:with-array (stream))
+           (cbor:with-bytes (stream)
              (cbor:encode-bytes #(1 2 3))
              (cbor:encode-bytes #())
              (cbor:encode-bytes #(4 5 6))))))
