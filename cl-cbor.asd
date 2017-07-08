@@ -17,6 +17,7 @@
   :components ((:file "package")
                (:file "cbor")
                (:file "misc")
+               (:file "conditions")
                (:file "encode")
                (:file "jump")
                (:file "decode"))

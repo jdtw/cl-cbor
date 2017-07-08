@@ -93,4 +93,18 @@
     (is-encode-decode '(1 2 3 4 5))
     (is-encode-decode '((1 ()) "abcd" (-1 1.1)))))
 
+(subtest "Test indefinite length"
+  (is (cbor:decode-sequence
+       (cbor:with-output-to-sequence ()
+         (cbor:with-array
+           (cbor:with-utf8
+             (cbor:encode-utf8 "foo")
+             (cbor:encode-utf8 "bar"))
+           (cbor:with-array)
+           (cbor:with-bytes
+             (cbor:encode-bytes #(1 2 3))
+             (cbor:encode-bytes #())
+             (cbor:encode-bytes #(4 5 6))))))
+      '("foobar" nil #(1 2 3 4 5 6))))
+
 (finalize)
