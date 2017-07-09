@@ -13,7 +13,7 @@ for any hash tables found during decoding")
 
 ;; TODO What should happen if the whole stream is not consumed? Multiple values?
 (defun decode (stream)
-  (jump stream))
+  (jump stream nil))
 
 (defun decode-sequence (sequence)
   (with-input-from-sequence (stream sequence)
