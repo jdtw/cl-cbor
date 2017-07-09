@@ -83,14 +83,10 @@
       (funcall writer n stream))))
 
 (defun encode-to-sequence (thing &key (return-as 'vector))
-  (babel-streams:with-output-to-sequence (stream :return-as return-as)
+  (with-output-to-sequence (stream :return-as return-as)
     (encode thing stream)))
 
 ;;; Streaming encoding
-
-(defmacro with-output-to-sequence ((var &key (return-as 'vector)) &body body)
-  `(babel-streams:with-output-to-sequence (,var :return-as ',return-as)
-     ,@body))
 
 (defmacro def-encoder (name type stream (encoder capture &body encode))
   `(defmacro ,name ((,stream) &body body)

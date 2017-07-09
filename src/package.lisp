@@ -23,7 +23,8 @@
                 #:make-in-memory-input-stream
                 #:make-in-memory-output-stream
                 #:get-output-stream-sequence
-                #:with-input-from-sequence)
+                #:with-input-from-sequence
+                #:with-output-to-sequence)
   (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode

@@ -26,7 +26,7 @@ for any hash tables found during decoding")
 ;; Byte strings
 (defjump ((#x40 #x5b)) (read-cbor-bytes))
 (defjump (#x5f)
-  (babel-streams:with-output-to-sequence (out)
+  (with-output-to-sequence (out)
     (decode-loop do (write-sequence decoded out))))
 
 ;; UTF8 strings
