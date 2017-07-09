@@ -30,6 +30,7 @@
            #:encode
            #:encode-to-sequence
            #:with-output-to-sequence
+           #:with-input-from-sequence
            #:with-array
            #:encode-array-element
            #:with-dict
@@ -38,6 +39,7 @@
            #:encode-utf8
            #:with-bytes
            #:encode-bytes
+           #:write-tag
            #:decode
            #:decode-sequence
            #:*decode-hash-table-initargs*))

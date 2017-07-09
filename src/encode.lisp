@@ -7,7 +7,7 @@
 
 ;;; Lisp data encoding
 
-(defparameter *encode-symbols-as-strings* t
+(defparameter *encode-symbols-as-strings* nil
   "'foo and :foo will be encoded as \"FOO\"")
 (defparameter *encode-nil-as* 'null
   "Possible values are 'list, 'null, or 'boolean")

@@ -47,9 +47,18 @@ for any hash tables found during decoding")
                (setf (gethash decoded dict) (decode))
                finally (return dict)))
 
-(defjump (#xc0) (error "Text-based date/time not implemented"))
-(defjump (#xc1) (error "Epoch-based date/time not implemented"))
-(defjump (#xc2) (error "Positive bignum not implemented"))
+(deftag ((#xc0) thing)
+  (check-type thing string)
+  (list :time thing))
+
+(deftag ((#xc1) thing)
+  (check-type thing (or integer float))
+  (list :epoch thing))
+
+;; Positive bignum
+(deftag ((#xc2) thing)
+  (check-type thing vector))
+
 (defjump (#xc3) (error "Negative bignum not implemented"))
 (defjump (#xc4) (error "Decimal Fraction not implemented"))
 (defjump (#xc5) (error "Bigfloat not implemented"))

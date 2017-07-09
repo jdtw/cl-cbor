@@ -71,8 +71,5 @@ caller with ~defjump~. Several functions are provided to the caller:
                   collect `(setf (aref *jump* ,b)
                                  (jump-lambda ,b ,@body)))))
 
-(defmacro deftag ((thing type) &body body)
-  `(decode
-    (lambda (,thing)
-      (check-type ,thing ,type)
-      ,@body)))
+(defmacro deftag ((pos thing) &body body)
+  `(defjump ,pos (decode (lambda (,thing) ,@body))))
