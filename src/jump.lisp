@@ -10,10 +10,8 @@
                   :initial-element (lambda (stream)
                                      (declare (ignore stream))
                                      (error "Invalid data type"))))
-(defun jump (stream tags)
-  (let ((tag (car tags))
-        (decoded (funcall (aref *jump* (read-byte stream)) stream (cdr tags))))
-    (if tag (funcall tag decoded) decoded)))
+(defun jump (stream)
+  (funcall (aref *jump* (read-byte stream)) stream))
 
 (defmacro jump-lambda (byte &body body)
   "Each entry in the jump list is a lambda, which can be defined by the
@@ -26,8 +24,8 @@ caller with ~defjump~. Several functions are provided to the caller:
       returns the common lisp object that was decoded.
 - decode-loop :: Either loops a number of times defined by read-cbor-uint,
       or, for indefinite items, loops until the #xff stop code is reached."
-  (with-gensyms (stream tags)
-    `(lambda (,stream ,tags)
+  (with-gensyms (stream)
+    `(lambda (,stream)
        (labels ((read-cbor-uint ()
                   ,(case (info byte)
                      (24 `(read-byte ,stream))
@@ -43,7 +41,7 @@ caller with ~defjump~. Several functions are provided to the caller:
                            :initial-element 0)))
                     (read-sequence bytes ,stream)
                     bytes))
-                (decode (&optional tag) (jump ,stream (cons tag ,tags))))
+                (decode () (jump ,stream)))
          (declare (ignorable (function read-cbor-bytes)
                              (function decode)))
          (macrolet ((decode-loop (&rest rest)
@@ -70,6 +68,3 @@ caller with ~defjump~. Several functions are provided to the caller:
   `(progn ,@(loop for b in (jump-range pos)
                   collect `(setf (aref *jump* ,b)
                                  (jump-lambda ,b ,@body)))))
-
-(defmacro deftag ((pos thing) &body body)
-  `(defjump ,pos (decode (lambda (,thing) ,@body))))

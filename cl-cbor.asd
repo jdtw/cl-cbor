@@ -18,6 +18,7 @@
                (:file "cbor")
                (:file "misc")
                (:file "conditions")
+               (:file "tags")
                (:file "encode")
                (:file "jump")
                (:file "decode"))

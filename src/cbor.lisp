@@ -127,6 +127,3 @@ type (the high-order 3 bits) and additional information (the low-order 5 bits)."
   (ldb (byte 3 5) b))
 
 (defconstant +indefinite+ 31)
-
-(defun write-tag (tag stream)
-  (write-initial-byte +tags+ tag stream))

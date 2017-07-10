@@ -16,3 +16,13 @@
   (:report (lambda (condition stream)
              (format stream "The dictionary key ~A is not a STRING"
                      (dict-key condition)))))
+
+(define-condition unknown-tag (simple-warning)
+  ((tag :initarg :tag
+        :reader unknown-tag-tag)
+   (item :initarg :item
+         :reader unknown-tag-item))
+  (:report (lambda (condition stream)
+             (format stream "Unknown tag ~A for item ~A"
+                     (unknown-tag-tag condition)
+                     (unknown-tag-item condition)))))

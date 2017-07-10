@@ -39,7 +39,15 @@
            #:encode-utf8
            #:with-bytes
            #:encode-bytes
-           #:write-tag
+           #:encode-tag
            #:decode
            #:decode-sequence
-           #:*decode-hash-table-initargs*))
+           #:*decode-hash-table-initargs*
+           #:add-tag-decoder
+           #:remove-tag-decoder
+           #:deftag
+           #:*ignore-tags*
+           #:tagged-item
+           #:item
+           #:item-tag
+           #:make-tagged-item))

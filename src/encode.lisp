@@ -69,6 +69,13 @@
     (error "*encode-symbols-as-strings* is nil"))
   (encode (symbol-name thing) stream))
 
+(defmethod encode ((thing tagged-item) stream)
+  (encode-tag (item-tag thing) stream)
+  (encode (item thing) stream))
+
+(defun encode-tag (tag stream)
+  (encode-uint tag stream :type +tags+))
+
 (defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
   (let ((bits (integer-length n)))

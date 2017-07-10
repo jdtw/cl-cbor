@@ -107,4 +107,31 @@
              (cbor:encode-bytes #(4 5 6))))))
       '("foobar" nil #(1 2 3 4 5 6))))
 
+(defmacro is-tagged-item (tag item)
+  (let ((enc (gensym "enc")) (dec (gensym "dec")))
+    `(let* ((,enc (cbor:make-tagged-item ,tag ,item))
+            (,dec (cbor:decode-sequence
+                   (cbor:encode-to-sequence
+                    ,enc))))
+       (is (cbor:item-tag ,enc) (cbor:item-tag ,dec))
+       (is (cbor:item ,enc) (cbor:item ,dec)))))
+(subtest "Test tags"
+  (is-tagged-item 6 "foo bar baz")
+  (is-tagged-item 31 (list 1 nil 3 #(1 2 3) 5))
+  (is-tagged-item #xdeadbeef #(1 2 3 4 5))
+  (let* ((tag 1234) (item #xffffffff)
+         ;; Instead of using a tagged item, we can encode a tagged
+         ;; item by writing a tag to the stream and then writing
+         ;; the encoded item as normal.
+         (encoded (cbor:with-output-to-sequence (stream)
+                    (cbor:encode-tag tag stream)
+                    (cbor:encode item stream)))
+         (decoded (cbor:decode-sequence encoded)))
+    (is tag (cbor:item-tag decoded))
+    (is item (cbor:item decoded))
+    ;; When we ignore tags and decode, the tag should be stripped.
+    (let ((cbor:*ignore-tags* t))
+      (setf decoded (cbor:decode-sequence encoded)))
+    (is item decoded)))
+
 (finalize)

@@ -13,7 +13,7 @@ for any hash tables found during decoding")
 
 ;; TODO What should happen if the whole stream is not consumed? Multiple values?
 (defun decode (stream)
-  (jump stream nil))
+  (jump stream))
 
 (defun decode-sequence (sequence)
   (with-input-from-sequence (stream sequence)
@@ -47,29 +47,31 @@ for any hash tables found during decoding")
                (setf (gethash decoded dict) (decode))
                finally (return dict)))
 
-(deftag ((#xc0) thing)
-  (check-type thing string)
-  (list :time thing))
+;; Tags
+(defjump ((#xc0 #xdb))
+  (decode-tag (read-cbor-uint) (decode)))
+(deftag (0 time)
+  (check-type time string)
+  ;; TODO
+  (list :time time))
+(deftag (1 epoch)
+  (check-type epoch number)
+  ;; TODO
+  (list :epoch epoch))
+(deftag (2 bignum)
+  (check-type bignum vector)
+  ;; TODO
+  (list :bignum bignum))
+(deftag (3 bignum)
+  (check-type bignum vector)
+  ;; TODO
+  (list :neg-bignum bignum))
 
-(deftag ((#xc1) thing)
-  (check-type thing (or integer float))
-  (list :epoch thing))
-
-;; Positive bignum
-(deftag ((#xc2) thing)
-  (check-type thing vector))
-
-(defjump (#xc3) (error "Negative bignum not implemented"))
-(defjump (#xc4) (error "Decimal Fraction not implemented"))
-(defjump (#xc5) (error "Bigfloat not implemented"))
-(defjump ((#xc6 #xd4)) (error "Tags not implemented"))
-(defjump ((#xd5 #xd7)) (error "Expected conversion not implemented"))
-(defjump ((#xd8 #xdb)) (error "Tags not implemented"))
 (defjump ((#xe0 #xf3)) (error "Simple value not implemented"))
 (defjump (#xf4) nil) ;false
 (defjump (#xf5) t)   ;true
 (defjump (#xf6) nil) ;null
-(defjump (#xf7) 'undefined)
+(defjump (#xf7) :undefined)
 (defjump (#xf8) (error "Simple value not implemented"))
 (defjump (#xf9) (decode-float16 (read-cbor-uint)))
 (defjump (#xfa) (decode-float32 (read-cbor-uint)))
