@@ -16,7 +16,7 @@ for any hash tables found during decoding")
   (jump stream))
 
 (defun decode-sequence (sequence)
-  (with-input-from-sequence (stream sequence)
+  (with-input-from-sequence (stream sequence :element-type '(unsigned-byte 8))
     (decode stream)))
 
 ;; Integers
@@ -50,22 +50,21 @@ for any hash tables found during decoding")
 ;; Tags
 (defjump ((#xc0 #xdb))
   (decode-tag (read-cbor-uint) (decode)))
-(deftag (0 time)
+(deftag (+time+ time)
   (check-type time string)
   ;; TODO
   (list :time time))
-(deftag (1 epoch)
+(deftag (+epoch+ epoch)
   (check-type epoch number)
   ;; TODO
   (list :epoch epoch))
-(deftag (2 bignum)
-  (check-type bignum vector)
-  ;; TODO
-  (list :bignum bignum))
-(deftag (3 bignum)
-  (check-type bignum vector)
-  ;; TODO
-  (list :neg-bignum bignum))
+(deftag (+bignum+ bignum)
+  (check-type bignum (vector (unsigned-byte 8)))
+  (octets->int bignum))
+(deftag (+neg-bignum+ bignum)
+  (check-type bignum (vector (unsigned-byte 8)))
+  (- -1 (octets->int bignum)))
+(deftag (+self-describe-cbor+ cbor) cbor)
 
 (defjump ((#xe0 #xf3)) (error "Simple value not implemented"))
 (defjump (#xf4) nil) ;false

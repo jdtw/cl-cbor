@@ -11,7 +11,8 @@
                #:ieee-floats
                #:nibbles
                #:babel
-               #:babel-streams)
+               #:babel-streams
+               #:bit-smasher)
   :pathname "src"
   :serial t
   :components ((:file "package")

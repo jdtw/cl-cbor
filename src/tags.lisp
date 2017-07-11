@@ -5,6 +5,12 @@
 
 (in-package #:cl-cbor)
 
+(defconstant +time+ 0)
+(defconstant +epoch+ 1)
+(defconstant +bignum+ 2)
+(defconstant +neg-bignum+ 3)
+(defconstant +self-describe-cbor+ 55799)
+
 (defparameter *tags-table* (make-hash-table)
   "Tag handlers. This library supports some tags, but the caller may add any
 tags they wish to this table (or remove/redefine any of the default tag

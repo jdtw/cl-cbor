@@ -25,6 +25,9 @@
                 #:get-output-stream-sequence
                 #:with-input-from-sequence
                 #:with-output-to-sequence)
+  (:import-from #:bit-smasher
+                #:int->octets
+                #:octets->int)
   (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode

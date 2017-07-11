@@ -23,11 +23,11 @@
     (list (write-initial-byte +array+ 0 stream))))
 
 (defmethod encode ((thing integer) stream)
-  (unless (<= (integer-length thing) 64)
-    (error "Only 64-bit integers are supported"))
-  (if (< thing 0)
-      (encode-uint (- -1 thing) stream :type +neg-int+)
-      (encode-uint thing stream)))
+  (if (<= (integer-length thing) 64)
+      (if (< thing 0)
+          (encode-uint (- -1 thing) stream :type +neg-int+)
+          (encode-uint thing stream))
+      (encode-bignum thing stream)))
 
 (defmethod encode ((thing vector) stream)
   (unless (seq-of-bytes-p thing)
@@ -88,6 +88,10 @@
           ((<= bits 64) (values +ub64+ #'write-ub64/be)))
       (write-initial-byte type info stream)
       (funcall writer n stream))))
+
+(defun encode-bignum (n stream)
+  (encode-tag (if (< n 0) +neg-bignum+ +bignum+) stream)
+  (encode (int->octets (if (< n 0) (- -1 n) n)) stream))
 
 (defun encode-to-sequence (thing &key (return-as 'vector))
   (with-output-to-sequence (stream :return-as return-as)
