@@ -167,4 +167,10 @@
        cbor:+self-describe-cbor+))))
    cbor:+self-describe-cbor+))
 
+(subtest "Test bignums"
+  (is-encode-decode #xbaadf00ddeadb33ffacefeed)
+  (is-encode-decode #x-baadf00ddeadb33ffacefeed)
+  (is-encode-decode #xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+  (is-encode-decode #x-8000000000000000000000000000000000000000000000000000000000))
+
 (finalize)

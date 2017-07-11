@@ -105,9 +105,8 @@
 (defun encode-bignum (n stream)
   (apply #'encode-tagged
          (if (< n 0)
-             (list +neg-bignum+ (- -1 n))
-             (list +bignum+ n))
-         stream))
+             (list +neg-bignum+ (int->octets (- -1 n)) stream)
+             (list +bignum+ (int->octets n) stream))))
 
 (defun encode-to-sequence (thing &key (return-as 'vector))
   (with-output-to-sequence (stream
