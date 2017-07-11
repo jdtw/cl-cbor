@@ -5,7 +5,9 @@
 
 (defpackage #:cl-cbor-test
   (:use #:cl
-        #:prove))
+        #:prove
+        #:alexandria
+        #:local-time))
 
 (in-package #:cl-cbor-test)
 
@@ -15,9 +17,27 @@
 (plan nil)
 
 (defmacro is-encode-decode (thing)
-  `(is (cbor:decode-sequence
-        (cbor:encode-to-sequence ,thing))
-       ,thing))
+  (with-gensyms (test)
+    `(let ((,test ,thing))
+       (is (cbor:decode-sequence
+            (cbor:encode-to-sequence ,test))
+           ,test))))
+
+(defmacro is-encode-decode* (enc dec)
+  (with-gensyms (e d)
+    `(let ((,e ,enc) (,d ,dec))
+       (is (cbor:decode-sequence
+            (cbor:encode-to-sequence ,e))
+           ,d))))
+
+(defmacro is-tagged-item (tag item)
+  (with-gensyms (enc dec)
+    `(let* ((,enc (cbor:make-tagged-item ,tag ,item))
+            (,dec (cbor:decode-sequence
+                   (cbor:encode-to-sequence
+                    ,enc))))
+       (is (cbor:item-tag ,enc) (cbor:item-tag ,dec))
+       (is (cbor:item ,enc) (cbor:item ,dec)))))
 
 (subtest "Testing integers"
   (is-encode-decode 0)
@@ -107,25 +127,13 @@
              (cbor:encode-bytes #(4 5 6))))))
       '("foobar" nil #(1 2 3 4 5 6))))
 
-(defmacro is-tagged-item (tag item)
-  (let ((enc (gensym "enc")) (dec (gensym "dec")))
-    `(let* ((,enc (cbor:make-tagged-item ,tag ,item))
-            (,dec (cbor:decode-sequence
-                   (cbor:encode-to-sequence
-                    ,enc))))
-       (is (cbor:item-tag ,enc) (cbor:item-tag ,dec))
-       (is (cbor:item ,enc) (cbor:item ,dec)))))
-(subtest "Test tags"
+(subtest "Test unknown tags"
   (is-tagged-item 6 "foo bar baz")
   (is-tagged-item 31 (list 1 nil 3 #(1 2 3) 5))
   (is-tagged-item #xdeadbeef #(1 2 3 4 5))
   (let* ((tag 1234) (item #xffffffff)
-         ;; Instead of using a tagged item, we can encode a tagged
-         ;; item by writing a tag to the stream and then writing
-         ;; the encoded item as normal.
          (encoded (cbor:with-output-to-sequence (stream)
-                    (cbor:encode-tag tag stream)
-                    (cbor:encode item stream)))
+                    (cbor:encode-tagged tag item stream)))
          (decoded (cbor:decode-sequence encoded)))
     (is tag (cbor:item-tag decoded))
     (is item (cbor:item decoded))
@@ -133,5 +141,30 @@
     (let ((cbor:*ignore-tags* t))
       (setf decoded (cbor:decode-sequence encoded)))
     (is item decoded)))
+
+(subtest "Test timestamps"
+  (let ((*default-test-function* #'local-time:timestamp=))
+    (is-encode-decode (now))
+    (is-encode-decode* (cbor:make-tagged-item cbor:+time+ "2013-03-21T20:04:00Z")
+                       (parse-timestring "2013-03-21T20:04:00Z"))
+    (is-encode-decode* (cbor:make-tagged-item cbor:+epoch+ 0)
+                       (unix-to-timestamp 0))
+    (is-encode-decode* (cbor:make-tagged-item cbor:+epoch+ 1.1d0)
+                       (unix-to-timestamp cbor:+epoch+ :nsec 100000000))
+    (is-encode-decode* (cbor:make-tagged-item cbor:+epoch+ -1.1d0)
+                       (unix-to-timestamp -2 :nsec 900000000))))
+
+(subtest "Test self-describe"
+  (is-encode-decode*
+   (cbor:make-tagged-item
+    cbor:+self-describe-cbor+
+    (cbor:make-tagged-item
+     cbor:+self-describe-cbor+
+     (cbor:make-tagged-item
+      cbor:+self-describe-cbor+
+      (cbor:make-tagged-item
+       cbor:+self-describe-cbor+
+       cbor:+self-describe-cbor+))))
+   cbor:+self-describe-cbor+))
 
 (finalize)

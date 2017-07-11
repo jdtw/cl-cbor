@@ -12,7 +12,8 @@
                #:nibbles
                #:babel
                #:babel-streams
-               #:bit-smasher)
+               #:bit-smasher
+               #:local-time)
   :pathname "src"
   :serial t
   :components ((:file "package")

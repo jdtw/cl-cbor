@@ -69,12 +69,25 @@
     (error "*encode-symbols-as-strings* is nil"))
   (encode (symbol-name thing) stream))
 
+(defun encode-tagged (tag thing stream)
+  (encode (make-tagged-item tag thing) stream))
+
 (defmethod encode ((thing tagged-item) stream)
-  (encode-tag (item-tag thing) stream)
+  (encode-uint (item-tag thing) stream :type +tags+)
   (encode (item thing) stream))
 
-(defun encode-tag (tag stream)
-  (encode-uint tag stream :type +tags+))
+(defmethod encode-timestring (string stream)
+  (check-type string string)
+  (encode-tagged +time+ string stream))
+
+(defmethod encode ((thing timestamp) stream)
+  (encode-timestring (format-rfc3339-timestring nil thing) stream))
+
+(defmethod encode-epoch (epoch stream)
+  (check-type epoch (or float
+                        (unsigned-byte 64)
+                        (unsigned-byte 64)))
+  (encode-tagged +epoch+ epoch stream))
 
 (defun encode-uint (n stream &key (type +uint+))
   (declare ((unsigned-byte 64) n))
@@ -90,11 +103,16 @@
       (funcall writer n stream))))
 
 (defun encode-bignum (n stream)
-  (encode-tag (if (< n 0) +neg-bignum+ +bignum+) stream)
-  (encode (int->octets (if (< n 0) (- -1 n) n)) stream))
+  (apply #'encode-tagged
+         (if (< n 0)
+             (list +neg-bignum+ (- -1 n))
+             (list +bignum+ n))
+         stream))
 
 (defun encode-to-sequence (thing &key (return-as 'vector))
-  (with-output-to-sequence (stream :return-as return-as)
+  (with-output-to-sequence (stream
+                            :return-as return-as
+                            :element-type '(unsigned-byte 8))
     (encode thing stream)))
 
 ;;; Streaming encoding

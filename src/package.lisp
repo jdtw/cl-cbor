@@ -28,6 +28,11 @@
   (:import-from #:bit-smasher
                 #:int->octets
                 #:octets->int)
+  (:import-from #:local-time
+                #:timestamp
+                #:format-rfc3339-timestring
+                #:parse-timestring
+                #:unix-to-timestamp)
   (:export #:*encode-symbols-as-strings*
            #:*encode-nil-as*
            #:encode
@@ -42,7 +47,9 @@
            #:encode-utf8
            #:with-bytes
            #:encode-bytes
-           #:encode-tag
+           #:encode-tagged
+           #:encode-timestring
+           #:encode-epoch
            #:decode
            #:decode-sequence
            #:*decode-hash-table-initargs*
@@ -53,4 +60,9 @@
            #:tagged-item
            #:item
            #:item-tag
-           #:make-tagged-item))
+           #:make-tagged-item
+           #:+time+
+           #:+epoch+
+           #:+bignum+
+           #:+neg-bignum+
+           #:+self-describe-cbor+))

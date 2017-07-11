@@ -8,7 +8,9 @@
   :author "John Wood <j@jdtw.us>"
   :license "MIT"
   :depends-on (#:cl-cbor
-               #:prove)
+               #:prove
+               #:alexandria
+               #:local-time)
   :defsystem-depends-on (#:prove-asdf)
   :pathname "test"
   :serial t

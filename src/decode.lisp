@@ -50,20 +50,29 @@ for any hash tables found during decoding")
 ;; Tags
 (defjump ((#xc0 #xdb))
   (decode-tag (read-cbor-uint) (decode)))
+
 (deftag (+time+ time)
   (check-type time string)
-  ;; TODO
-  (list :time time))
+  (parse-timestring time))
+
 (deftag (+epoch+ epoch)
   (check-type epoch number)
-  ;; TODO
-  (list :epoch epoch))
+  (apply #'unix-to-timestamp
+         (etypecase epoch
+           (integer (list epoch))
+           (float (multiple-value-bind (q r)
+                      (floor epoch)
+                    (assert (not (minusp r)))
+                    (list q :nsec (round (* r 1000000000))))))))
+
 (deftag (+bignum+ bignum)
   (check-type bignum (vector (unsigned-byte 8)))
   (octets->int bignum))
+
 (deftag (+neg-bignum+ bignum)
   (check-type bignum (vector (unsigned-byte 8)))
   (- -1 (octets->int bignum)))
+
 (deftag (+self-describe-cbor+ cbor) cbor)
 
 (defjump ((#xe0 #xf3)) (error "Simple value not implemented"))
