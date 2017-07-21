@@ -23,5 +23,6 @@
                (:file "tags")
                (:file "encode")
                (:file "jump")
-               (:file "decode"))
+               (:file "decode")
+               (:file "pretty-print"))
   :in-order-to ((test-op (test-op cl-cbor-test))))

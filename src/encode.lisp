@@ -76,14 +76,14 @@
   (encode-uint (item-tag thing) stream :type +tags+)
   (encode (item thing) stream))
 
-(defmethod encode-timestring (string stream)
+(defun encode-timestring (string stream)
   (check-type string string)
   (encode-tagged +time+ string stream))
 
 (defmethod encode ((thing timestamp) stream)
   (encode-timestring (format-rfc3339-timestring nil thing) stream))
 
-(defmethod encode-epoch (epoch stream)
+(defun encode-epoch (epoch stream)
   (check-type epoch (or float
                         (unsigned-byte 64)
                         (unsigned-byte 64)))

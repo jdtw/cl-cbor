@@ -50,9 +50,11 @@
            #:encode-tagged
            #:encode-timestring
            #:encode-epoch
+
            #:decode
            #:decode-sequence
            #:*decode-hash-table-initargs*
+
            #:add-tag-decoder
            #:remove-tag-decoder
            #:deftag
@@ -65,4 +67,7 @@
            #:+epoch+
            #:+bignum+
            #:+neg-bignum+
-           #:+self-describe-cbor+))
+           #:+self-describe-cbor+
+
+           #:pprint-cbor
+           #:pprint-cbor-sequence))
